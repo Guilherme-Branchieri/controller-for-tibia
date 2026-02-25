@@ -1,0 +1,49 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f1117;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  background: #1c1f26;
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+  width: 400px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.qr-container img {
+  width: 250px;
+  height: 250px;
+  margin: 20px 0;
+}
+
+.status {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.status.connected {
+  color: #00ff88;
+}
+
+.status.disconnected {
+  color: #ff4d4d;
+}
+
+.waiting {
+  opacity: 0.6;
+  font-size: 14px;
+}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Joystick Server</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Joystick Server</h1>
+
+      <div class="qr-container">
+        <img id="qr" />
+      </div>
+
+      <div class="info">
+        <p id="ip"></p>
+        <p id="status" class="status disconnected">
+          ● Desconectado
+        </p>
+        <p class="waiting">Aguardando dispositivo móvel...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
