@@ -3,23 +3,23 @@ import keyboard
 
 # ================= STATE =================
 
-current_state = {
-    "w": False,
-    "a": False,
-    "s": False,
-    "d": False
-}
+ALL_KEYS = ["w", "a", "s", "d", "q", "e", "z", "c"]
+
+current_state = {key: False for key in ALL_KEYS}
 
 direction_map = {
-    "up":         {"w": True,  "a": False, "s": False, "d": False},
-    "down":       {"w": False, "a": False, "s": True,  "d": False},
-    "left":       {"w": False, "a": True,  "s": False, "d": False},
-    "right":      {"w": False, "a": False, "s": False, "d": True},
-    "up-left":    {"w": True,  "a": True,  "s": False, "d": False},
-    "up-right":   {"w": True,  "a": False, "s": False, "d": True},
-    "down-left":  {"w": False, "a": True,  "s": True,  "d": False},
-    "down-right": {"w": False, "a": False, "s": True,  "d": True},
-    "stop":       {"w": False, "a": False, "s": False, "d": False}
+    "up":         {"w": True},
+    "down":       {"s": True},
+    "left":       {"a": True},
+    "right":      {"d": True},
+
+    # 🔥 diagonais agora são teclas únicas
+    "up-left":    {"q": True},
+    "up-right":   {"e": True},
+    "down-left":  {"z": True},
+    "down-right": {"c": True},
+
+    "stop":       {}
 }
 
 # ================= APPLY =================
@@ -27,14 +27,18 @@ direction_map = {
 def apply_keys(target):
     global current_state
 
-    for key in ["w", "a", "s", "d"]:
-        if target[key] != current_state[key]:
-            if target[key]:
+    # Garante que todas as teclas existam no target
+    full_target = {key: False for key in ALL_KEYS}
+    full_target.update(target)
+
+    for key in ALL_KEYS:
+        if full_target[key] != current_state[key]:
+            if full_target[key]:
                 keyboard.press(key)
             else:
                 keyboard.release(key)
 
-            current_state[key] = target[key]
+            current_state[key] = full_target[key]
 
 # ================= MAIN LOOP =================
 
@@ -58,7 +62,6 @@ def main():
 
     # soltar tudo ao sair
     apply_keys(direction_map["stop"])
-
 
 if __name__ == "__main__":
     main()
