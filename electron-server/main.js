@@ -142,10 +142,6 @@ process.on('exit', () => {
 
 app.whenReady().then(() => {
     startKeyboardProcess();
-    setTimeout(() => {
-        console.log("TESTANDO W");
-        sendDirection("up");
-    }, 3000);
     createWindow();
     startServer();
 });
