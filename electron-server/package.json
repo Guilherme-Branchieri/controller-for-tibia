@@ -5,7 +5,7 @@
     "main": "main.js",
     "scripts": {
         "start": "electron .",
-        "build": "electron-builder --win portable"
+        "build": "electron-builder --win"
     },
     "build": {
         "appId": "com.remote.joystick",
@@ -15,12 +15,13 @@
         ],
         "extraResources": [
             {
-                "from": "keyboard.exe",
-                "to": "keyboard.exe"
+                "from": "keyboard-mapper.exe",
+                "to": "keyboard-mapper.exe"
             }
         ],
         "win": {
-            "target": "portable"
+            "target": "nsis",
+            "requestedExecutionLevel": "requireAdministrator"
         }
     },
     "dependencies": {

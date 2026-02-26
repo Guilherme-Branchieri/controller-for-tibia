@@ -12,63 +12,46 @@ let keyboardProcess;
 
 const PORT = 3000;
 
-// Detecta IP local automaticamente
 function getLocalIP() {
     const interfaces = os.networkInterfaces();
-
     for (const name of Object.keys(interfaces)) {
         for (const iface of interfaces[name]) {
-
             const isIPv4 = iface.family === 'IPv4';
             const isInternal = iface.internal;
             const isValidRange =
                 iface.address.startsWith('192.168.') ||
                 iface.address.startsWith('10.') ||
                 iface.address.startsWith('172.16.');
-
-            if (isIPv4 && !isInternal && isValidRange) {
-                return iface.address;
-            }
+            if (isIPv4 && !isInternal && isValidRange) return iface.address;
         }
     }
-
     return '127.0.0.1';
 }
 
 const IP = getLocalIP();
 const WS_URL = `ws://${IP}:${PORT}`;
 
-// Inicia processo C++ persistente
 function startKeyboardProcess() {
+    // ✅ FIX: usa exePath no spawn (não __dirname fixo)
+    const exePath = app.isPackaged
+        ? path.join(process.resourcesPath, 'keyboard-mapper.exe')
+        : path.join(__dirname, 'keyboard-mapper.exe');
 
-    let exePath;
+    console.log("Iniciando keyboard-mapper.exe em:", exePath);
+    keyboardProcess = spawn(exePath, [], { windowsHide: true });
 
-    if (app.isPackaged) {
-        // Quando estiver empacotado
-        exePath = path.join(process.resourcesPath, 'keyboard-mapper.exe');
-    } else {
-        // Desenvolvimento
-        exePath = path.join(__dirname, 'keyboard-mapper.exe');
-    }
-
-    keyboardProcess = spawn(path.join(__dirname, 'keyboard-mapper.exe'));
-
-    keyboardProcess.on('error', (err) => {
-        console.error('Erro ao iniciar keyboard.exe:', err);
-    });
-
-    keyboardProcess.on('exit', () => {
-        console.log('keyboard-mapper.exe finalizado');
-    });
+    keyboardProcess.stdout.on('data', (d) => console.log('[keyboard-mapper]', d.toString().trim()));
+    keyboardProcess.stderr.on('data', (d) => console.error('[keyboard-mapper ERR]', d.toString().trim()));
+    keyboardProcess.on('error', (err) => console.error('Erro ao iniciar keyboard-mapper.exe:', err));
+    keyboardProcess.on('exit', (code) => console.log(`keyboard-mapper.exe finalizado (${code})`));
 }
 
-function sendDirection(direction) {
-    if (keyboardProcess) {
-        keyboardProcess.stdin.write(direction + '\n');
+function sendCommand(command) {
+    if (keyboardProcess?.stdin?.writable) {
+        keyboardProcess.stdin.write(command + '\n');
     }
 }
 
-// Cria janela
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 500,
@@ -77,24 +60,15 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js')
         }
     });
-
     mainWindow.loadFile('renderer/index.html');
 }
 
-// Inicia servidor WebSocket
 async function startServer() {
-    wss = new WebSocket.Server({
-        host: '0.0.0.0',
-        port: PORT
-    });
+    wss = new WebSocket.Server({ host: '0.0.0.0', port: PORT });
 
     wss.on('connection', (ws) => {
-
-        // Permite apenas 1 cliente
-        if (currentClient) {
-            ws.close();
-            return;
-        }
+        // ✅ FIX: encerra cliente antigo em vez de rejeitar o novo
+        if (currentClient) currentClient.close();
 
         currentClient = ws;
         mainWindow.webContents.send('connection-status', true);
@@ -102,43 +76,48 @@ async function startServer() {
         ws.on('message', async (message) => {
             try {
                 const data = JSON.parse(message.toString());
-                const direction = data.direction;
 
-                console.log("DIRECTION:", direction);
-
-                if (direction) {
-                    sendDirection(direction);
+                if (data.direction) {
+                    console.log('DIRECTION:', data.direction);
+                    sendCommand(data.direction);
+                } else if (data.action) {
+                    console.log('ACTION:', data.action);
+                    sendCommand(data.action);
                 }
-
             } catch (err) {
                 console.error("ERRO JSON:", err);
             }
         });
 
         ws.on('close', () => {
-            sendDirection("stop");
-            currentClient = null;
-            mainWindow.webContents.send('connection-status', false);
+            // ✅ FIX: só limpa se for o cliente atual
+            if (currentClient === ws) {
+                sendCommand("stop");
+                currentClient = null;
+                mainWindow.webContents.send('connection-status', false);
+            }
         });
     });
 
-    // Gera QR Code
+    // ✅ FIX: envia QR Code corretamente independente do timing
     const qr = await QRCode.toDataURL(WS_URL);
-    mainWindow.webContents.on('did-finish-load', () => {
-        mainWindow.webContents.send('server-info', {
-            ip: IP,
-            port: PORT,
-            qr
+    if (mainWindow.webContents.isLoading()) {
+        mainWindow.webContents.once('did-finish-load', () => {
+            mainWindow.webContents.send('server-info', { ip: IP, port: PORT, qr });
         });
-    });
+    } else {
+        mainWindow.webContents.send('server-info', { ip: IP, port: PORT, qr });
+    }
 }
 
-process.on('exit', () => {
+function cleanup() {
     if (keyboardProcess) {
-        keyboardProcess.stdin.write("exit\n");
+        try { keyboardProcess.stdin.write("exit\n"); } catch (_) {}
         keyboardProcess.kill();
     }
-});
+}
+
+process.on('exit', cleanup);
 
 app.whenReady().then(() => {
     startKeyboardProcess();
@@ -147,9 +126,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-    if (keyboardProcess) {
-        keyboardProcess.stdin.write("exit\n");
-        keyboardProcess.kill();
-    }
+    cleanup();
     app.quit();
 });
