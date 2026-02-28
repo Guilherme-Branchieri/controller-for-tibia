@@ -80,7 +80,7 @@ cd native-keyboard
 pip install interception-python pyinstaller
 
 # Build executable
-pyinstaller --onefile --noconsole keyboard-mapper.py
+python -M Pyinstaller --onefile --noconsole keyboard-mapper.py
 
 # Copy to electron-server
 cp dist/keyboard-mapper.exe ../electron-server/keyboard-mapper.exe
