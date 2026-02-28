@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "ControllerForTibia",
+    "slug": "react-native-client",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "reactnativeclient",
+    "userInterfaceStyle": "automatic",
+    "androidNavigationBar": {
+      "visible": "sticky-immersive"
+    },
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.totsync.remote_joystic",
+      "usesCleartextTraffic": true
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1e9b1678-b6c5-48b3-a236-af7fbf711f83"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1e9b1678-b6c5-48b3-a236-af7fbf711f83"
+    }
+  }
+}
