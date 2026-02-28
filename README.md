@@ -206,4 +206,4 @@ Some game clients install keyboard hooks that block synthetic input via standard
 
 ## License
 
-Private — all rights reserved.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
